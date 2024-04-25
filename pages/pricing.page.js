@@ -8,19 +8,25 @@ export class PricingPage {
         this.emailInput = '[data-test-id="email-input"]'
         this.passInput = '[data-test-id="password-input"]'
         this.sendLogin = '[data-test-id="login-form-submit-button"]'
-        this.packTwoBtn= '[data-automation="2Tab"]'
-        this.packFiveBtn= '[data-automation="5Tab"]'
-        this.packTwentyfiveBtn= '[data-automation="25Tab"]'
+        this.pack2Btn= '[data-automation="2Tab"]'
+        this.pack5Btn= '[data-automation="5Tab"]'
+        this.pack10Btn= '[data-automation="10Tab"]'
+        this.pack25Btn= '[data-automation="25Tab"]'
         this.priceSpan = '[data-automation="PricingCard_OD_priceContainer"] > h4 > span'
         this.logoutBtn = '[data-automation="ProfileDrawer_LogoutButton"]'
         this.standardInput = 'input[value="standardLicense"]'
         this.enhancedInput = 'input[value="enhancedLicense"]'
         this.accountIcon = 'button[aria-label="User profile"]'
 
+        this.resolutionDD = '[data-automation="PricingCard_DropDownOptions"]'
+        this.selectSD = '[data-automation="PricingCard_DropDownOption_SD"]'
+        this.selectHD = '[data-automation="PricingCard_DropDownOption_HD"]'
+        this.select4K = '[data-automation="PricingCard_DropDownOption_4K"]'
+
     }
-    async goToMainPage(){
-        await this.page.goto('https://www.shutterstock.com/pricing')
-        await expect(this.page).toHaveURL('https://www.shutterstock.com/pricing');
+    async goToMainPage(URL){
+        await this.page.goto('https://www.shutterstock.com/pricing' + URL)
+        await expect(this.page).toHaveURL('https://www.shutterstock.com/pricing' +URL);
 
     }
     async login(email, pass){
@@ -37,23 +43,24 @@ export class PricingPage {
     async verifyLogin(){
         await expect(this.page.locator(this.accountIcon)).toBeVisible()
     }
-    async verifyAllPrices(){
-        await this.page.locator(this.packTwoBtn).click()
-        await this.page.locator(this.standardInput).click()
-        await expect(this.page.locator(this.priceSpan)).toContainText('$22')
-        await this.page.locator(this.enhancedInput).click()
-        await expect(this.page.locator(this.priceSpan)).toContainText('$199')
+    async verifyAllPrices(prices, packs, resolution) {
+        if (await this.page.locator(this.resolutionDD).isVisible()) {
+            await this.page.locator(this.resolutionDD).click()
+            await this.page.locator(this[`select${resolution}`]).click()
+        }
+        for (let i = 0; i < prices.length; i++) {
+            const price = prices[i]
+            const packNumber = packs[i]
 
-        await this.page.locator(this.packFiveBtn).click()
-        await this.page.locator(this.standardInput).click()
-        await expect(this.page.locator(this.priceSpan)).toContainText('$49')
-        await this.page.locator(this.enhancedInput).click()
-        await expect(this.page.locator(this.priceSpan)).toContainText('$449')
+            await this.page.locator(this[`pack${packNumber}Btn`]).first().click()
 
-        await this.page.locator(this.packTwentyfiveBtn).click()
-        await this.page.locator(this.standardInput).click()
-        await expect(this.page.locator(this.priceSpan)).toContainText('$229')
-        await this.page.locator(this.enhancedInput).click()
-        await expect(this.page.locator(this.priceSpan)).toContainText('$1,699')
+            await this.page.locator(this.standardInput).click()
+            await expect(this.page.locator(this.priceSpan)).toContainText('$' + price.standard)
+            await this.page.locator(this.enhancedInput).click()
+            await expect(this.page.locator(this.priceSpan)).toContainText('$' + price.enhanced)
+
+            
+        }
     }
+    
 }
